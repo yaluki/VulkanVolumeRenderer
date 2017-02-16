@@ -90,7 +90,12 @@ Further, the render pass created. That is an object which holds the framebuffers
 The graphics pipeline needs memory to execute commands, for that a pipeline cache is created.
 
 To draw the images from the swap chain on the screen they have to be referenced as attachments by a framebuffer. Therefore we create a framebuffer for each swap chain image.
-
+\begin{figure*}[htp]
+	\centering
+	\includegraphics[width=0.75\textwidth]{images/datastructure.png}
+	\caption{The structure of the octree represented by a single list.}
+	\label{fig:datastructure}
+\end{figure*}
 Next, the uniform buffer objects (UBOs) and the shader storage buffer objects (SSBOs) are initialized. They hold the entire data of the scene, e.g. the voxel data set and the viewers position. As a next step, the texture target of the renderer is defined, this serves as the actual rendering target of the ray tracer.
 \par
 Subsequently, the actual graphics pipeline is defined. This includes the specification of all pipeline-stages. Shader stages are modules that define the programmable stages of the graphics pipeline, like the vertex and the fragment shader. The fixed function stages can not be programmed but their behavior needs to be explicitly defined (e.g. input assembly, rasterizer, viewport and color blending). Additionally the pipeline layout needs to be defined, which are the resource descriptors of the shaders. These descriptor sets enable the shaders to access resources like buffers and images. Further the render pass is added to the pipeline. 
@@ -107,6 +112,12 @@ For further reading about the Vulkan API we refer to the official specification\
 To handle the windowing and input system of the operation system we use the \texttt{GLFW} library\cite{loewy2016glfw}. Additionally, we use the \texttt{GLM} library\cite{creation2016glm} to ensure our datatypes in the C++ code are shader compatible.
 
 \subsection{Datastructure}
+\begin{figure*}[htp]
+	\centering
+	\includegraphics[width=0.75\textwidth]{images/rendering_process.png}
+	\caption{The shown pipeline visualizes the core steps which are performed to render a single image and hand it to the fragment shader, which then paints it on the polygons in front of the camera.}
+	\label{fig:renderingprocess}
+\end{figure*}
 To enable efficient raytracing, binary partitioning methods, such as binary space partinioning trees (BSP-trees), are needed. We use an octree introduced in \cite{meagher1982geometric} as data structure. Even though, KD-trees are better suited for fast raytracing\cite{havran2000heuristic}, we have to keep the limited on-board memory of the GPU in mind. Octrees are highly structured and predictable which allows for optimization in the data structure\cite{crassin2009gigavoxels}.
 Hence, the octree serves as a basis for our data structure. To calculate the number of nodes in the octree, equation \ref{octree_size} can be used. Thereby $N$ terms the number of voxel points in the volume, aligned in a cubic grid.
 \begin{equation} 
@@ -145,26 +156,15 @@ Combining the algorithms from listings \ref{lst:siblings} and \ref{lst:nextblock
 \par
 
 Standard octree implementations use references such as pointers to reference the children of a node. Because we want to use the data structure on the GPU we have two options. Hand the data over as textures (1D, 2D or 3D) or hand over an array containing all the nodes. Even though, using textures would benefit from texture interpolation implemented in hardware, we chose the latter approach. The reason was mainly the simplicity of the prototype. To work with a single list we need to determine how the nodes are arranged inside that list and which information each node needs that traversing the octree becomes possible. One node in our prototype uses $4$ bytes for color encoding and $4$ bytes for storing an index to the first child. This basic node structure needs all children of a node to be placed together in one block. As shown in fig. \ref{fig:datastructure} the octree is built from left to right, means the first node in the list corresponds to the root node of the octree. 
-\begin{figure*}[htp]
-	\centering
-	\includegraphics[width=0.8\textwidth]{images/datastructure.png}
-	\caption{The structure of the octree represented by a single list.}
-	\label{fig:datastructure}
-\end{figure*}
+
 The data structure is created \textit{a priori} and then handed over to the GPU. After that the whole rendering process takes place on the GPU.
 
 \subsection{Renderer}
 \label{sec:renderer}
+
 The renderer is implemented as a compute shader. We used the GLSL interface for SPIR-V for coding. As shown in fig. \ref{fig:renderingprocess} the shader uses the octree data and additional attributes as input. To hand over data to the GPU there are two possibilities: uniform buffer objects (UBOs) and shader storage buffer objects (SSBOs)\cite{vulkan1.0.38spec}. Dependent on the hardware for UBOs only a maximum size of $16$KB is guaranteed. For SSBOs the guaranteed maximum size is $16$MB, but on most modern GPUs it is roughly $2$GB\cite{willems2016vulkan}. For this reason we share the octree as an SSBO and the further meta information (e.g. octree position) as an UBO.
 \par
 Once the data is fed to the shader it produces an output image using a modified ray tracing algorithm. The image is then used as a texture and painted on the plane setup in front of the screen by the fragment shader. While rendering, the compute shader contains logic to evaluate the needed data resolution for a certain pixel and interrupts the ray tracing algorithm accordingly to lower the computational complexity effort. This process is executed highly parallel by calculating the pixel colors independently and therefore concurrently.
-
-\begin{figure*}[htp]
-	\centering
-	\includegraphics[width=0.8\textwidth]{images/rendering_process.png}
-	\caption{The shown pipeline visualizes the core steps which are performed to render a single image and hand it to the fragment shader, which then paints it on the polygons in front of the camera.}
-	\label{fig:renderingprocess}
-\end{figure*}
 
 As soon as a non-cubic volume is rendered, the octree contains transparent nodes. To handle this, not only the first node hit by the ray is needed, rather all nodes hit behind that node as long as the alpha value of the pixel color has not reached $1.0$ or the volume is passed. In the latter case the color is mixed with the background color, which is $rgb(0, 0, 0)$ (black).
 
@@ -186,7 +186,7 @@ This results are achieved when using a NVIDIA GeForce GT 650M with 1024 MB of on
 
 \begin{figure}[htp]
 	\centering
-	\includegraphics[width=0.45\textwidth]{images/kidney_256x256x256.PNG}
+	\includegraphics[width=0.48\textwidth, trim={0.5cm 2.5cm 0.5cm 2cm}, clip]{images/kidney_256x256x256.PNG}
 	\caption{Rendering of a mouse kidney at a resolution of $256^3$. Left with fully transparent or fully visible nodes. Right with nodes whose alpha value equals the gray scale value.}
 	\label{fig:kidneyRendering}
 \end{figure}
@@ -195,9 +195,9 @@ This results are achieved when using a NVIDIA GeForce GT 650M with 1024 MB of on
 \label{conclusion}
 In this work we have implemented a prototype system investigating the volume rendering process using the ray tracing algorithm. The prototype is implemented using the Vulkan API with a compute shader as the actual renderer. We showed that it is crucial to use binary space partitioning methods. Without them it is not even possible to render small data sets (e.g. $8^3$) at an acceptable frame rate (over 20 fps). The octree is a powerful tool to achieve this, but with the weakness when rendering semi-transparent objects. But still, the ray tracing algorithm is pretty un-tuned and could be improved by adapting the fast voxel traversal algorithm described by Amanatides and Woo in \cite{amanatides1987fast} to our task. Furthermore, there are several possibilities to decrease the number of floating point operations inside the compute shader, e.g. to not check for every node whether it is behind the viewer instead using the information given by the parent. With this approaches we could further increase the current rendering performance of our prototype.
 \par
-Future work should consist of further developing the data structure. So it can be dynamically enhanced throughout the rendering process. This would address the problem of data sets that are too big for the on-board memory of the GPU. It should also be considered switching to work with textures instead of an array as representation of the octree. Reasons for this are mainly hardware-sided texture interpolation and the lack of dynamic indexing on the GPU.
-%\par
-%The open source code of the prototype is available at \texttt{https://github.com/yaluki/...}
+Future work should consist of further developing the data structure. So it can be adapted throughout the rendering process. This would address the problem of data sets that are too big for the on-board memory of the GPU. It should also be considered switching to work with textures instead of an array as representation of the octree. Reasons for this are mainly hardware-sided texture interpolation and the lack of dynamic indexing on the GPU.
+\par
+The open source code of the prototype is available at \texttt{https://github.com/yaluki/\allowbreak VulkanVolumeRenderer}.
 
 \section{Acknowledgments}
 The mouse kidney model is a courtesy of The Interface Group of the University of Zürich.
