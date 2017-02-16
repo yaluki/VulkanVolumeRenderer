@@ -8,6 +8,8 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{float}
+\usepackage[hyphens]{url}
+\usepackage{hyperref}
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -34,7 +36,7 @@
 	frame=single,
 	framerule=0pt,
 	framesep=5pt,
-	xleftmargin=.015\textwidth, xrightmargin=.015\textwidth
+	xleftmargin=.02\textwidth, xrightmargin=.02\textwidth
 }
 \lstset{language=C, style=mystyle}
 
@@ -71,7 +73,6 @@ The best results on a single GPU to our knowledge are achieved by the GigaVoxels
 For a more detailed overview of the current state of the art in the area of GPU techniques for visualizing large data sets we refer to \cite{beyer2014survey}.
 \par
 The remainder of this paper is organized as follows. In section \ref{approach} we describe our setup of the Vulkan Pipeline and our newly designed data structure. To demonstrate the possibilities of our prototype we show some rendering results of different test data sets in section \ref{results}. The paper concludes with a summary and future research directions in section \ref{conclusion}.
-
 \section{Approach}
 \label{approach}
 We separate the described problem into two major sub-issues, the rendering and the data-management. In this work we focus on the rendering part of volumetric data using an improved ray tracing algorithm. For this we develop an octree based data structure which can be easily processed by the GPU.  
@@ -92,7 +93,7 @@ The graphics pipeline needs memory to execute commands, for that a pipeline cach
 To draw the images from the swap chain on the screen they have to be referenced as attachments by a framebuffer. Therefore we create a framebuffer for each swap chain image.
 \begin{figure*}[htp]
 	\centering
-	\includegraphics[width=0.75\textwidth]{images/datastructure.png}
+	\includegraphics[width=0.8\textwidth]{images/datastructure.png}
 	\caption{The structure of the octree represented by a single list.}
 	\label{fig:datastructure}
 \end{figure*}
@@ -114,7 +115,7 @@ To handle the windowing and input system of the operation system we use the \tex
 \subsection{Datastructure}
 \begin{figure*}[htp]
 	\centering
-	\includegraphics[width=0.75\textwidth]{images/rendering_process.png}
+	\includegraphics[width=0.775\textwidth]{images/rendering_process.png}
 	\caption{The shown pipeline visualizes the core steps which are performed to render a single image and hand it to the fragment shader, which then paints it on the polygons in front of the camera.}
 	\label{fig:renderingprocess}
 \end{figure*}
@@ -197,7 +198,7 @@ In this work we have implemented a prototype system investigating the volume ren
 \par
 Future work should consist of further developing the data structure. So it can be adapted throughout the rendering process. This would address the problem of data sets that are too big for the on-board memory of the GPU. It should also be considered switching to work with textures instead of an array as representation of the octree. Reasons for this are mainly hardware-sided texture interpolation and the lack of dynamic indexing on the GPU.
 \par
-The open source code of the prototype is available at \texttt{https://github.com/yaluki/\allowbreak VulkanVolumeRenderer}.
+The source code of the prototype is available at \url{https://github.com/yaluki/VulkanVolumeRenderer}.
 
 \section{Acknowledgments}
 The mouse kidney model is a courtesy of The Interface Group of the University of Zürich.

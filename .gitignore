@@ -1,4 +1,7 @@
 doc/IEEEtran_HOWTO.pdf
+*.out
+*.aux
+*.synctex.gz
 
 *.tif
 enc_temp_folder/
