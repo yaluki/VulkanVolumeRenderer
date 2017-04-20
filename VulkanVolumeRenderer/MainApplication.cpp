@@ -13,7 +13,7 @@
 
 #include "ComputePipeline.h"
 
-#define ENABLE_VALIDATION true
+#define ENABLE_VALIDATION false
 
 #define TEX_HEIGHT 768
 #define TEX_WIDTH 1024

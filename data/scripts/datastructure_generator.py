@@ -14,5 +14,6 @@ with open(os.path.join(path, "Output.txt"), "w") as text_file:
         for i in range(width):
             for j in range(height):
                 value = pix[i, j][0]
-                if value < 50: value = 0
+                #uncomment to increase the threshold for the empty space to a certain gray scale value
+                #if value < 50: value = 0
                 print(value, file=text_file, end=";")

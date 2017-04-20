@@ -114,6 +114,6 @@ namespace datastructure {
 	// private
 	void Octree::removeEmptyNodes() {
 		// removes 1/4 of the volume to give a more interesting image
-		nodes[8].color = vec4ToInt(glm::vec4(0, 0, 0, 0));
+		//nodes[8].color = vec4ToInt(glm::vec4(0, 0, 0, 0));
 	}
 }
